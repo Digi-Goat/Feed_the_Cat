@@ -16,16 +16,18 @@ FPS = 60
 clock = pygame.time.Clock()
 
 # Set game values
-PLAYER_STARTING_LIVES = 5
+PLAYER_STARTING_LIVES = 6
 PLAYER_VELOCITY = 10
 FOOD_STARTING_VELOCITY = 5
 FOOD_ACCELERATION = 0.05
 BUFFER_DISTANCE = 100
 MOUTH_OPEN_DURATION = 200  # Duration the mouth stays open in milliseconds
+HORIZONTAL_LINE_Y = 100
 SCRATCH_IMAGE_PATH = "assets/CatScratch.png"
 
 # File path for high score
 HIGH_SCORE_FILE = "highscore.txt"
+
 
 def load_high_score():
     """Load the high score from a file."""
@@ -38,6 +40,7 @@ def load_high_score():
             return 0
     return 0
 
+
 def save_high_score(score):
     """Save the high score to a file."""
     try:
@@ -45,6 +48,7 @@ def save_high_score(score):
             file.write(str(score))
     except IOError:
         print("Error saving high score.")
+
 
 # Load the initial high score
 high_score = load_high_score()
@@ -109,26 +113,33 @@ miss_sound.set_volume(0.5)
 pygame.mixer.music.load('assets/ftd_background_music.wav')
 
 # Load the images
-player_image_p1 = pygame.image.load("assets/Cat.mouth.closed.left.png")  # Left-facing cat for Player 1
-player_image_p2 = pygame.image.load("assets/Cat.mouth.closed.right.png")  # Right-facing cat for Player 2
+player_image_p1_closed = pygame.image.load("assets/Cat.mouth.closed.left.png")  # Left-facing cat for Player 1 (closed)
+player_image_p1_open = pygame.image.load("assets/Cat.mouth.open.left.png")  # Left-facing cat for Player 1 (open)
+player_image_p2_closed = pygame.image.load(
+    "assets/Cat.mouth.closed.right.png")  # Right-facing cat for Player 2 (closed)
+player_image_p2_open = pygame.image.load("assets/Cat.mouth.open.right.png")  # Right-facing cat for Player 2 (open)
 
 # Scale the images
-scaled_image_p1 = pygame.transform.scale(player_image_p1, (57.86, 62.42))
-scaled_image_p2 = pygame.transform.scale(player_image_p2, (57.86, 62.42))
+scaled_image_p1_closed = pygame.transform.scale(player_image_p1_closed, (57.86, 62.42))
+scaled_image_p1_open = pygame.transform.scale(player_image_p1_open, (57.86, 62.42))
+scaled_image_p2_closed = pygame.transform.scale(player_image_p2_closed, (57.86, 62.42))
+scaled_image_p2_open = pygame.transform.scale(player_image_p2_open, (57.86, 62.42))
 
 # Initialize player_rect with the scaled images
-player_rect_p1 = scaled_image_p1.get_rect(center=(WINDOW_WIDTH // 2 - 200, WINDOW_HEIGHT // 2))
-player_rect_p2 = scaled_image_p2.get_rect(center=(WINDOW_WIDTH // 2 + 200, WINDOW_HEIGHT // 2))
+player_rect_p1 = scaled_image_p1_closed.get_rect(center=(WINDOW_WIDTH // 2 - 50, WINDOW_HEIGHT // 2))
+player_rect_p2 = scaled_image_p1_open.get_rect(center=(WINDOW_WIDTH // 2 + 50, WINDOW_HEIGHT // 2))
 
 # Load and scale food images
-food_image_p1 = pygame.image.load("assets/Food.png")
-food_image_p2 = pygame.image.load("assets/Food.png")
+food_image_p1 = pygame.image.load("assets/Food.p2.png")
+food_image_p2 = pygame.image.load("assets/Food.p1.png")
 scaled_food_p1 = pygame.transform.scale(food_image_p1, (57.86, 62.42))
 scaled_food_p2 = pygame.transform.scale(food_image_p2, (57.86, 62.42))
 
 # Initialize food positions off-screen
-food_rect_p1 = scaled_food_p1.get_rect(center=(0, random.randint(100, WINDOW_HEIGHT - 100)))  # Start off-screen to the left
-food_rect_p2 = scaled_food_p2.get_rect(center=(WINDOW_WIDTH, random.randint(100, WINDOW_HEIGHT - 100)))  # Start off-screen to the right
+food_rect_p1 = scaled_food_p1.get_rect(
+    center=(0, random.randint(100, WINDOW_HEIGHT - 100)))  # Start off-screen to the left
+food_rect_p2 = scaled_food_p2.get_rect(
+    center=(WINDOW_WIDTH, random.randint(100, WINDOW_HEIGHT - 100)))  # Start off-screen to the right
 
 # Load the scratch image
 scratch_image = pygame.image.load(SCRATCH_IMAGE_PATH)
@@ -138,17 +149,19 @@ scratch_rect = scratch_image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT /
 # Start background music
 pygame.mixer.music.play(-1, 0.0)
 
+
 # Function to reset food position for Player 1
 def reset_food_p1():
-    food_rect_p1.centerx = WINDOW_WIDTH // 2
+    food_rect_p1.centerx = WINDOW_WIDTH  # Start off-screen to the right
     food_rect_p1.centery = random.randint(64, WINDOW_HEIGHT - 32)
+
 
 # Function to reset food position for Player 2
 def reset_food_p2():
-    food_rect_p2.centerx = WINDOW_WIDTH // 2
+    food_rect_p2.centerx = 0  # Start off-screen to the left
     food_rect_p2.centery = random.randint(64, WINDOW_HEIGHT - 32)
 
-# The main game loop
+
 running = True
 while running:
     current_time = pygame.time.get_ticks()
@@ -169,13 +182,14 @@ while running:
     if not paused:
         # Player 1 controls
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_w] and player_rect_p1.top > 90:
+        if keys[pygame.K_w] and player_rect_p1.top > HORIZONTAL_LINE_Y + 10:  # Prevent moving above the horizontal line
             player_rect_p1.y -= PLAYER_VELOCITY
         if keys[pygame.K_s] and player_rect_p1.bottom < WINDOW_HEIGHT:
             player_rect_p1.y += PLAYER_VELOCITY
 
         # Player 2 controls
-        if keys[pygame.K_UP] and player_rect_p2.top > 90:
+        if keys[
+            pygame.K_UP] and player_rect_p2.top > HORIZONTAL_LINE_Y + 10:  # Prevent moving above the horizontal line
             player_rect_p2.y -= PLAYER_VELOCITY
         if keys[pygame.K_DOWN] and player_rect_p2.bottom < WINDOW_HEIGHT:
             player_rect_p2.y += PLAYER_VELOCITY
@@ -187,27 +201,29 @@ while running:
         # Check if the food goes off the screen (missed food)
         if food_rect_p1.x < 0:
             miss_sound.play()
-            player_lives_p1 -= 1
+            player_lives_p2 -= 1
             reset_food_p1()
 
         if food_rect_p2.x > WINDOW_WIDTH:
             miss_sound.play()
-            player_lives_p2 -= 1
+            player_lives_p1 -= 1
             reset_food_p2()
 
-        # Check for collision with the food for Player 1
-        if player_rect_p1.colliderect(food_rect_p1):
+        # Check for collision with the food for Player 1 (Food 2)
+        if player_rect_p1.colliderect(food_rect_p2):
             food_sound.play()
             score_p1 += 1
-            reset_food_p1()
+            reset_food_p2()  # Reset food 2 for Player 2
             food_velocity += FOOD_ACCELERATION
+            mouth_open_time_p1 = current_time + MOUTH_OPEN_DURATION  # Set time for mouth to open
 
-        # Check for collision with the food for Player 2
-        if player_rect_p2.colliderect(food_rect_p2):
+        # Check for collision with the food for Player 2 (Food 1)
+        if player_rect_p2.colliderect(food_rect_p1):
             food_sound.play()
             score_p2 += 1
-            reset_food_p2()
+            reset_food_p1()  # Reset food 1 for Player 1
             food_velocity += FOOD_ACCELERATION
+            mouth_open_time_p2 = current_time + MOUTH_OPEN_DURATION  # Set time for mouth to open
 
         # Update text
         score_text_p1 = font.render("Player 1 Score: " + str(score_p1), True, PURPLE, DARK_PURPLE)
@@ -218,8 +234,11 @@ while running:
         # Fill the display
         display_surface.fill(LIGHT_BLUE)
 
-        # Draw the separator line
-        pygame.draw.line(display_surface, DARK_PURPLE, (0, 100), (WINDOW_WIDTH, 100), 5)
+        # Draw the separator line horizontally
+        pygame.draw.line(display_surface, DARK_PURPLE, (0, HORIZONTAL_LINE_Y), (WINDOW_WIDTH, HORIZONTAL_LINE_Y), 5)
+        # Draw the separator line vertically
+        pygame.draw.line(display_surface, DARK_PURPLE, (WINDOW_WIDTH // 2, HORIZONTAL_LINE_Y),
+                         (WINDOW_WIDTH // 2, WINDOW_HEIGHT), 5)
 
         # Blit text and images
         display_surface.blit(score_text_p1, score_rect_p1)
@@ -227,14 +246,29 @@ while running:
         display_surface.blit(high_score_text, high_score_rect)
         display_surface.blit(lives_text_p1, lives_rect_p1)
         display_surface.blit(lives_text_p2, lives_rect_p2)
-        display_surface.blit(scaled_image_p1, player_rect_p1)
-        display_surface.blit(scaled_image_p2, player_rect_p2)
+
+        # Blit the appropriate cat image based on mouth animation
+        if current_time < mouth_open_time_p1:
+            display_surface.blit(scaled_image_p1_open, player_rect_p1)
+        else:
+            display_surface.blit(scaled_image_p1_closed, player_rect_p1)
+
+        if current_time < mouth_open_time_p2:
+            display_surface.blit(scaled_image_p2_open, player_rect_p2)
+        else:
+            display_surface.blit(scaled_image_p2_closed, player_rect_p2)
+
         display_surface.blit(scaled_food_p1, food_rect_p1)
         display_surface.blit(scaled_food_p2, food_rect_p2)
 
         # Check for game over for both players
         if player_lives_p1 <= 0 or player_lives_p2 <= 0:
-            display_surface.blit(scratch_image, scratch_rect)
+            # Blit the scratch image only on the side of the player who lost
+            if player_lives_p1 <= 0:
+                display_surface.blit(scratch_image, (0, 0))  # Player 1 side
+            if player_lives_p2 <= 0:
+                display_surface.blit(scratch_image, (WINDOW_WIDTH // 2, 0))  # Player 2 side
+
             display_surface.blit(game_over_text, game_over_rect)
             display_surface.blit(continue_text, continue_rect)
             pygame.display.update()
@@ -253,8 +287,10 @@ while running:
                         player_lives_p1 = PLAYER_STARTING_LIVES
                         player_lives_p2 = PLAYER_STARTING_LIVES
                         food_velocity = FOOD_STARTING_VELOCITY
-                        player_rect_p1 = scaled_image_p1.get_rect(left=32, centery=WINDOW_HEIGHT // 2)
-                        player_rect_p2 = scaled_image_p2.get_rect(right=WINDOW_WIDTH - 32, centery=WINDOW_HEIGHT // 2)
+                        player_rect_p1 = scaled_image_p1_closed.get_rect(
+                            center=(WINDOW_WIDTH // 2 - 50, WINDOW_HEIGHT // 2))
+                        player_rect_p2 = scaled_image_p2_closed.get_rect(
+                            center=(WINDOW_WIDTH // 2 + 50, WINDOW_HEIGHT // 2))
                         reset_food_p1()
                         reset_food_p2()
                         pygame.mixer.music.play(-1, 0.0)
@@ -266,6 +302,4 @@ while running:
     else:
         display_surface.blit(paused_text, paused_rect)
         pygame.display.update()
-
-# Quit Pygame
-pygame.quit()
+pygame.quit
