@@ -1,13 +1,26 @@
 import pygame
 import random
 import os
+import tkinter as tk
 
 # Initialize Pygame
 pygame.init()
 
 # Set display surface
-WINDOW_WIDTH = 1400
-WINDOW_HEIGHT = 800
+# Initialize tkinter window
+root = tk.Tk()
+
+# Get the screen width and height
+WINDOW_WIDTH = root.winfo_screenwidth()
+WINDOW_HEIGHT = root.winfo_screenheight()
+
+# Print the dimensions
+print(f"Screen width: {WINDOW_WIDTH}")
+print(f"Screen height: {WINDOW_HEIGHT}")
+
+# Close the tkinter window
+root.destroy()
+
 display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("MEOW - 2 Player Mode")
 
@@ -153,14 +166,14 @@ pygame.mixer.music.play(-1, 0.0)
 # Function to reset food position for Player 1
 def reset_food_p1():
     food_rect_p1.centerx = WINDOW_WIDTH  # Start off-screen to the right
-    food_rect_p1.centery = random.randint(64, WINDOW_HEIGHT - 32)
-
+    # Ensure food doesn't appear above the horizontal line
+    food_rect_p1.centery = random.randint(HORIZONTAL_LINE_Y + 10, WINDOW_HEIGHT - 32)
 
 # Function to reset food position for Player 2
 def reset_food_p2():
     food_rect_p2.centerx = 0  # Start off-screen to the left
-    food_rect_p2.centery = random.randint(64, WINDOW_HEIGHT - 32)
-
+    # Ensure food doesn't appear above the horizontal line
+    food_rect_p2.centery = random.randint(HORIZONTAL_LINE_Y + 10, WINDOW_HEIGHT - 32)
 
 running = True
 while running:
